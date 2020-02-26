@@ -7,9 +7,9 @@ public class Server {
     //static Vector<ClientHandler> ar = new Vector<>();
     private ArrayList<SConnection> connections = new ArrayList<>();
 
+    //Serverens port nummer
     private static int PORT = 3030;
 
-    static int i = 0;
     static String name;
     private boolean stop = false;
     private boolean valid = false;
@@ -35,33 +35,41 @@ public class Server {
 
     public void serverM() throws IOException{
 
+        //Laver en ny socket som venter på Clienter på PORT
         ServerSocket ss = new ServerSocket(PORT);
 
         Socket s;
 
-        System.out.println("**** Starting server on PORT: "+ PORT + " ****\n");
-        System.out.println("Waiting for clients to connect....\n");
+        System.out.println("**** Starter server på PORT: "+ PORT + " ****\n");
+        System.out.println("Venter for klienter til at connect.....\n");
 
+        //Et while loop bliver lavet når en forbindelse fra en client bliver fundet
         while (true) {
 
+            //accepterer clienten
             s = ss.accept();
 
+            //DataInd- og OutputStream bliver brugt til at sende data fra klient til serveren og omvendt.
             dis = new DataInputStream(s.getInputStream());
             dos = new DataOutputStream(s.getOutputStream());
 
-            //Skriver til klient om brugernavn
+            //Serveren skriver til klienten og beder om et brugernavn
             dos.writeUTF("Type Join: and then your user name: ");
+            //flush ryder OutputStream så den er tom
             dos.flush();
 
-            //For brugernavn fra klient
+            //Serveren modtager indput fra klienten og sætten det til klientens brugernavn
             String brugerNavn = dis.readUTF();
 
-            String[] parts = brugerNavn.split(":");
-            if (parts.length > 0) {
-                String part1 = parts[0];
-                setName(parts[1]);
+            //Her bliver vores meddelse delt op med ':' da der kan være flere valg og funktioner i en
+            //meddelse fra clienten.
+            String[] fragments = brugerNavn.split(":");
+            if (fragments.length > 0) {
+                String part1 = fragments[0];
+                setName(fragments[1]);
 
-
+                //Før en klient kan joine serveren skal de skrive 'join:' og deres brugernavn
+                //hvis dette ikke er opfyldt kaster den en fejl
                 if (part1.equalsIgnoreCase("join")) {
 
                     while (true) {
@@ -71,33 +79,33 @@ public class Server {
 
                         SConnection sConnection = new SConnection(s, this, name);
 
+                        //Starter tråden
                         sConnection.start();
 
+                        //vores connection bliver her tilføjet til vores 'ArrayListe'
                         connections.add(sConnection);
-                            System.out.println(name + " har joinet serveren");
+                            System.out.println(name + " har joinet serveren\n");
                             break;
 
                     } else{
-                        // Ved forkert brugernavn.
-                        dos.writeUTF("Try again: ");
+                        // Ved indtastet forkert brugernavn.
+                        dos.writeUTF("Prøv igen: ");
                         dos.flush();
 
-                        // Tages nyt input fra klienten.
+                        //nyt input fra klienten.
                         String newTextIn = dis.readUTF();
-                        parts = newTextIn.split(":");
+                            fragments = newTextIn.split(":");
 
-                            if (parts.length > 0) {
-                                setName(parts[1]);
+                            if (fragments.length > 0) {
+                                setName(fragments[1]);
                             }
                         }
                     }
                 }else {
-
                     // Fejl: forkert format.
                     dos.writeUTF("Forkert format");
                     dos.flush();
                     break;
-
                 }
             }else{
                 // Fejl: forkert format.
@@ -106,15 +114,15 @@ public class Server {
                 break;
             }
         }
-
     }
 
-    //metode til at checke om brugernavn
+    //metode til at checke om brugernavn er brugbart og ikke findes i forvejen
     public void userName(String inputUserName){
 
-        //løber listen igennem for clients
+        //løber listen igennem for klienter
         for (int i = 0; i < connections.size(); i++){
 
+            //hvis et brugernavn allerede findes bliver klienten afvist.
             if (connections.get(i).getUsername().equalsIgnoreCase(inputUserName)){
                 setStop(true);
                 break;
@@ -123,7 +131,7 @@ public class Server {
 
         if (stop){
             try {
-                //Client afvist
+                //Når klienten bliver afvist
                 dos.writeUTF("Brugernavn eksistere allerede");
                 dos.flush();
                 valid = false;
@@ -134,9 +142,12 @@ public class Server {
             }
 
         }
+        //Brugernavnet findes ikke og bliver godkendt
         else {
             try {
                 dos.writeUTF("Brugernavn OK");
+                dos.writeUTF("Du kan nu chatte!");
+                dos.writeUTF("Skriv 'HELPME' for en guide");
                 dos.flush();
 
                 valid = true;
@@ -145,9 +156,7 @@ public class Server {
                 E.printStackTrace();
             }
         }
-
     }
-
 }
 
 /*class ClientHandler implements Runnable{

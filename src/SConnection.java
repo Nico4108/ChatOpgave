@@ -18,22 +18,23 @@ public class SConnection extends Thread{
     }
 
     public SConnection(Socket socket, Server server, String username) {
-        super("Server Connection Thread");
+        super("Server Connection Tråd");
         this.socket = socket;
         this.server = server;
         this.username = username;
     }
 
-    public void writeToAllInChat(String[] parts){
-        String message = parts[1];
+    //Metode som skriver til alle klienter der er connected til serveren
+    public void writeToAllInChat(String[] fragments){
+        String message = fragments[1];
 
-        for (int j = 0; j < server.getConnections().size(); j++){
-            sConnection = server.getConnections().get(j);
+        for (int a = 0; a < server.getConnections().size(); a++){
+            sConnection = server.getConnections().get(a);
 
             try {
                 sConnection.dos.writeUTF("Besked fra " + username + ": " + message);
+                //flush ryder OutputStream så den er tom
                 sConnection.dos.flush();
-                //System.out.println(username + " ");
 
             }catch (IOException e){
                 e.printStackTrace();
@@ -41,20 +42,26 @@ public class SConnection extends Thread{
         }
     }
 
-    public void writeToOneClient(String[] parts) {
+    ////Metode som skriver til en specifik klient der er connected til serveren
+    public void writeToOneClient(String[] fragments) {
 
-        String writeTo = parts[1];
-        String text = parts[2];
+        String writeTo = fragments[1];
+        String text = fragments[2];
 
-        for (int j = 0; j < server.getConnections().size(); j++) {
-            sConnection = server.getConnections().get(j);
+        //ArrayListen bliver kørt igennem for at finde den rigtige klient
+        for (int a = 0; a < server.getConnections().size(); a++) {
 
-            System.out.println(server.getConnections().get(j).getUsername() + " chatter med " + username);
+            sConnection = server.getConnections().get(a);
 
-            if (writeTo.equalsIgnoreCase(server.getConnections().get(j).getUsername())){
+            System.out.println(server.getConnections().get(a).getUsername() + " chatter med " + username);
+
+            //Findes brugernavnet med det ønsket i arraylisten
+            if (writeTo.equalsIgnoreCase(server.getConnections().get(a).getUsername())){
 
                 try {
+                    //Vi bruger 'sConnection' til at sikre og vi kun skriver til 1 klient (den ønsket)
                     sConnection.dos.writeUTF("Fra " + username + ": " + text);
+                    //flush ryder OutputStream så den er tom
                     sConnection.dos.flush();
                     dos.writeUTF("Besked sent fra " + username);
                     break;
@@ -66,27 +73,37 @@ public class SConnection extends Thread{
         }
     }
 
+    //metode til at vise alle aktive klienter på serveren/listen
     public void clientList(){
 
-        for (int j = 0; j < server.getConnections().size(); j++) {
+        //Her bliver vores 'getCoonections' arrayliste loopet igennem og printer alle på listen
+        for (int a = 0; a < server.getConnections().size(); a++) {
             try {
 
-                dos.writeUTF("Connected " + j + ": " + server.getConnections().get(j).getUsername());
+                //Her bliver der kun brugt 'dos' da beskede skal til klienten selv
+                dos.writeUTF("Connected " + a + ": " + server.getConnections().get(a).getUsername());
+                //flush ryder OutputStream så den er tom
                 dos.flush();
 
             } catch (IOException e) {
                 e.printStackTrace();
             }
-
         }
-
     }
 
+    public void helpME() throws IOException {
+        dos.writeUTF("***** HELP ME GUIDE *****\n");
+        dos.writeUTF("Data = skrive med 1 client: (data: brugernavn på klient du vil skrive til: besked ---> data: Nic: Hey du!");
+        dos.writeUTF("Broadcast = skriv til alle klienter: (broadcast: dit brugernavn: besekd) ---> broadcast: besked");
+        dos.writeUTF("List = viser en liste over klienter: (list: dit brugernavn:) ---> list: nic");
+    }
 
     @Override
+    //Thread run
     public void run() {
         try {
 
+            //Data in- og outputStream oprettes og tager en socket til at "lytte" efter trafik/input
             dis = new DataInputStream(socket.getInputStream());
             dos = new DataOutputStream(socket.getOutputStream());
 
@@ -103,32 +120,33 @@ public class SConnection extends Thread{
                     }
                 }
 
-                //Her bliver 'messageIn' sat til den værdi er bliver opfanget fra DataInputStream
+                //Her bliver 'messageIn' sat til den værdi der bliver opfanget fra DataInputStream
                 String messageIn = dis.readUTF();
 
-                String[] parts = messageIn.split(":");
-                if (parts.length > 0) {
-                    // Part1 er kommandoen
-                    String part1 = parts[0];
+                //Meddelse bliver delt op med ':' da der kan være flere valg og funktioner i en
+                //meddelse fra clienten.
+                String[] fragments = messageIn.split(":");
+                if (fragments.length > 0) {
+
+                    String control = fragments[0];
 
                     // Switch-Cases til valgmuligheder af funktioner for client og server.
-                    switch (part1) {
+                    switch (control) {
 
                         case "broadcast":
-                            writeToAllInChat(parts);
+                            writeToAllInChat(fragments);
                             break;
 
                         case "data":
-                            writeToOneClient(parts);
+                            writeToOneClient(fragments);
                             break;
 
                         case "list":
                             clientList();
                             break;
-
-                        /*case "IMAV":
-                            imavTimerUpdate();
-                            break;*/
+                        case "HELPME":
+                            helpME();
+                            break;
 
                         default:
                             dos.writeUTF("ERROR - Command not understood");
@@ -136,7 +154,6 @@ public class SConnection extends Thread{
                             break;
                     }
                 }
-
             }
         }catch (IOException e){
             e.printStackTrace();
