@@ -93,9 +93,9 @@ public class SConnection extends Thread{
 
     public void helpME() throws IOException {
         dos.writeUTF("***** HELP ME GUIDE *****\n");
-        dos.writeUTF("MOne = skrive med 1 client: (MOne: brugernavn på klient du vil skrive til: besked ---> MOne: Nic: Hey du!");
-        dos.writeUTF("MAll = skriv til alle klienter: (MAll: dit brugernavn: besekd) ---> MAll: besked");
-        dos.writeUTF("List = viser en liste over klienter: (list: dit brugernavn:) ---> list: nic");
+        dos.writeUTF("data = skrive med 1 client: (data: brugernavn på klient du vil skrive til: besked ---> data: Nic: Hey du!");
+        dos.writeUTF("broadcast = skriv til alle klienter: (broadcast: dit brugernavn: besekd) ---> broadcast: besked");
+        dos.writeUTF("list = viser en liste over klienter: (list:) ---> list:");
     }
 
     @Override
@@ -133,15 +133,15 @@ public class SConnection extends Thread{
                     // Switch-Cases til valgmuligheder af funktioner for client og server.
                     switch (control) {
 
-                        case "MAll"://Broadcast
+                        case "broadcast":
                             writeToAllInChat(fragments);
                             break;
 
-                        case "MOne"://Data
+                        case "data":
                             writeToOneClient(fragments);
                             break;
 
-                        case "list"://LIST
+                        case "list":
                             clientList();
                             break;
                         case "HELPME":
