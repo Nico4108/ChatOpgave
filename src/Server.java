@@ -10,12 +10,12 @@ public class Server {
     //Serverens port nummer
     private static int PORT = 3030;
 
-    static String name;
+    private static String name;
     private boolean stop = false;
     private boolean valid = false;
 
-    static private DataInputStream dis;
-    static private DataOutputStream dos;
+    private DataInputStream dis;
+    private DataOutputStream dos;
 
     public void setStop(boolean stop) {
         this.stop = stop;
@@ -54,7 +54,7 @@ public class Server {
             dos = new DataOutputStream(s.getOutputStream());
 
             //Serveren skriver til klienten og beder om et brugernavn
-            dos.writeUTF("Type Join: and then your user name: ");
+            dos.writeUTF("Skriv join: efterfulgt af dit ønsket brugernavn: ");
             //flush ryder OutputStream så den er tom
             dos.flush();
 
