@@ -35,6 +35,9 @@ public class Server {
 
     public void serverM() throws IOException{
 
+        ImAlive ia = new ImAlive();
+        ia.start();
+
         //Laver en ny socket som venter på Clienter på PORT
         ServerSocket ss = new ServerSocket(PORT);
 
