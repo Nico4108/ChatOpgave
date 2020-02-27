@@ -133,15 +133,15 @@ public class SConnection extends Thread{
                     // Switch-Cases til valgmuligheder af funktioner for client og server.
                     switch (control) {
 
-                        case "MAll":
+                        case "MAll"://Broadcast
                             writeToAllInChat(fragments);
                             break;
 
-                        case "MOne":
+                        case "MOne"://Data
                             writeToOneClient(fragments);
                             break;
 
-                        case "list":
+                        case "list"://LIST
                             clientList();
                             break;
                         case "HELPME":
